@@ -9,7 +9,7 @@ class FitnessClassModel(Base):
     name = Column(String, nullable=False)
     datetime = Column(DateTime, nullable=False)
     instructor = Column(String, nullable=False)
-    available_slots = Column(Integer, default=10)
+    available_slots = Column(Integer)
 
     booking = relationship("BookingModel", back_populates="fitness_class")
 
