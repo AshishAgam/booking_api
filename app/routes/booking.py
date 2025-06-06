@@ -1,6 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
 from typing import List
+from app.main import logger
 from app.database import SessionLocal
 from app.schemas import ResponseModel, BookingOut, BookingIn
 from app.models import FitnessClassModel, BookingModel
@@ -21,9 +22,11 @@ def book_class(request:BookingIn, db: Session = Depends(get_db)):
     fitness_class = db.query(FitnessClassModel).filter_by(id=request.class_id).first()
 
     if not fitness_class:
+        logger.info(f"Class not fount with given ClassID {request.class_id}")
         raise HTTPException(status_code=404, detail="Class not found")
     
     if fitness_class.available_slots <= 0:
+        logger.info("No slot available")
         raise HTTPException(status_code=400, detail="No available slots")
     
     # create booking
@@ -38,6 +41,8 @@ def book_class(request:BookingIn, db: Session = Depends(get_db)):
     db.commit()
     db.refresh(booking)
 
+    logger.info(f"Booking request by {request.client_email} for class {request.class_id}")
+
     return{
         "message": "Booking Successfull",
         "status": "success",
@@ -50,6 +55,8 @@ def book_class(request:BookingIn, db: Session = Depends(get_db)):
 def get_booking_by_email(email: str = Query(...), db: Session = Depends(get_db)):
     """Fetch all bookings made by a specific client using their email."""
     booking = db.query(BookingModel).filter_by(client_email=email).all()
+
+    logger.info(f"Fetch all bookings made by {email}")
 
     return{
         "message": "Bookings fetched successfully",
